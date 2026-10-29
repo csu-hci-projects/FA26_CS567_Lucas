@@ -13,7 +13,8 @@ import {
     FrontendApplicationContribution,
     WidgetFactory,
     RemoteConnectionProvider,
-    ServiceConnectionProvider
+    ServiceConnectionProvider,
+    PerspectiveContribution
 } from '@theia/core/lib/browser';
 import {
     FilterContribution,
@@ -25,7 +26,7 @@ import { DisableAgentContribution } from './disable-agent-contribution';
 import { TerminalFilterContribution } from './terminal-filter-contribution';
 import { bindTutorTests } from './tutor-test-contribution';
 import { TutorTestRunnerService, tutorTestRunnerServicePath } from '../common/tutor-test-runner-service';
-import {  } from '@theia/core/lib/browser';
+import { TutorPerspectiveContribution } from './tutor-perspective-contribution';
 
 export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     bindViewContribution(bind, ProgressWidgetContribution);
@@ -67,4 +68,6 @@ export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     bindTutorTests(bind);
     bind(TerminalFilterContribution).toSelf().inSingletonScope();
     bindContribution(bind, TerminalFilterContribution, [FilterContribution]);
+    bind(TutorPerspectiveContribution).toSelf().inSingletonScope();
+    bind(PerspectiveContribution).toService(TutorPerspectiveContribution);
 });
