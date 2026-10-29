@@ -1,8 +1,11 @@
 import { ContainerModule } from '@theia/core/shared/inversify';
 import { ProgressWidget } from './progress-widget';
 import { TestWidget } from './test-widget';
-import { ProgressWidgetContribution, TestWidgetContribution } from './widget-contribution';
-import { MarkdownPreviewContribution } from './markdown-preview-contribution';
+import {
+    ProgressWidgetContribution,
+    TestWidgetContribution,
+    MarkdownPreviewContribution
+} from './widget-contribution';
 import { MarkdownPreviewWidget } from './markdown-preview-widget';
 import { Agent } from '@theia/ai-core';
 import { ChatAgent } from '@theia/ai-chat';
@@ -62,11 +65,13 @@ export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     });
     bind(DisableAgentContribution).toSelf().inSingletonScope();
     bind(FrontendApplicationContribution).toService(DisableAgentContribution);
+
     bind(TutorTestRunnerService).toDynamicValue(ctx => {
         const provider = ctx.container.get<ServiceConnectionProvider>(RemoteConnectionProvider);
         return provider.createProxy<TutorTestRunnerService>(tutorTestRunnerServicePath);
     }).inSingletonScope();
     bindTutorTests(bind);
+
     bind(TerminalFilterContribution).toSelf().inSingletonScope();
     bindContribution(bind, TerminalFilterContribution, [FilterContribution]);
     bind(TutorPerspectiveContribution).toSelf().inSingletonScope();

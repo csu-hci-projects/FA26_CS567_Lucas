@@ -1,24 +1,22 @@
-import { injectable } from '@theia/core/shared/inversify';
+import { inject, injectable } from '@theia/core/shared/inversify';
 import { MenuModelRegistry } from '@theia/core';
 import { ProgressWidget } from './progress-widget';
 import { TestWidget } from './test-widget';
-import { AbstractViewContribution } from '@theia/core/lib/browser';
+import { MarkdownPreviewWidget } from './markdown-preview-widget';
+import { AbstractViewContribution, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { Command, CommandRegistry } from '@theia/core/lib/common/command';
+import { EditorManager } from '@theia/editor/lib/browser/editor-manager';
+import { EditorWidget } from '@theia/editor/lib/browser/editor-widget';
 
 export const ProgressWidgetCommand: Command = { id: 'progress:command' };
 export const TestWidgetCommand: Command = { id: 'test:command' };
+export const MarkdownPreviewWidgetCommand: Command = {
+    id: 'markdown-preview:command'
+};
 
 @injectable()
 export class ProgressWidgetContribution extends AbstractViewContribution<ProgressWidget> {
 
-    /**
-     * `AbstractViewContribution` handles the creation and registering
-     *  of the widget including commands, menus, and keybindings.
-     * 
-     * We can pass `defaultWidgetOptions` which define widget properties such as 
-     * its location `area` (`main`, `left`, `right`, `bottom`), `mode`, and `ref`.
-     * 
-     */
     constructor() {
         super({
             widgetId: ProgressWidget.ID,
@@ -28,44 +26,12 @@ export class ProgressWidgetContribution extends AbstractViewContribution<Progres
         });
     }
 
-    /**
-     * Example command registration to open the widget from the menu, and quick-open.
-     * For a simpler use case, it is possible to simply call:
-     ```ts
-        super.registerCommands(commands)
-     ```
-     *
-     * For more flexibility, we can pass `OpenViewArguments` which define 
-     * options on how to handle opening the widget:
-     * 
-     ```ts
-        toggle?: boolean
-        activate?: boolean;
-        reveal?: boolean;
-     ```
-     *
-     * @param commands
-     */
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(ProgressWidgetCommand, {
             execute: () => super.openView({ activate: false, reveal: true })
         });
     }
 
-    /**
-     * Example menu registration to contribute a menu item used to open the widget.
-     * Default location when extending the `AbstractViewContribution` is the `View` main-menu item.
-     * 
-     * We can however define new menu path locations in the following way:
-     ```ts
-        menus.registerMenuAction(CommonMenus.HELP, {
-            commandId: 'id',
-            label: 'label'
-        });
-     ```
-     * 
-     * @param menus
-     */
     registerMenus(menus: MenuModelRegistry): void {
         super.registerMenus(menus);
     }
@@ -74,14 +40,6 @@ export class ProgressWidgetContribution extends AbstractViewContribution<Progres
 @injectable()
 export class TestWidgetContribution extends AbstractViewContribution<TestWidget> {
 
-    /**
-     * `AbstractViewContribution` handles the creation and registering
-     *  of the widget including commands, menus, and keybindings.
-     * 
-     * We can pass `defaultWidgetOptions` which define widget properties such as 
-     * its location `area` (`main`, `left`, `right`, `bottom`), `mode`, and `ref`.
-     * 
-     */
     constructor() {
         super({
             widgetId: TestWidget.ID,
@@ -91,45 +49,64 @@ export class TestWidgetContribution extends AbstractViewContribution<TestWidget>
         });
     }
 
-    /**
-     * Example command registration to open the widget from the menu, and quick-open.
-     * For a simpler use case, it is possible to simply call:
-     ```ts
-        super.registerCommands(commands)
-     ```
-     *
-     * For more flexibility, we can pass `OpenViewArguments` which define 
-     * options on how to handle opening the widget:
-     * 
-     ```ts
-        toggle?: boolean
-        activate?: boolean;
-        reveal?: boolean;
-     ```
-     *
-     * @param commands
-     */
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(TestWidgetCommand, {
             execute: () => super.openView({ activate: false, reveal: true })
         });
     }
 
-    /**
-     * Example menu registration to contribute a menu item used to open the widget.
-     * Default location when extending the `AbstractViewContribution` is the `View` main-menu item.
-     * 
-     * We can however define new menu path locations in the following way:
-     ```ts
-        menus.registerMenuAction(CommonMenus.HELP, {
-            commandId: 'id',
-            label: 'label'
-        });
-     ```
-     * 
-     * @param menus
-     */
     registerMenus(menus: MenuModelRegistry): void {
+        super.registerMenus(menus);
+    }
+}
+
+@injectable()
+export class MarkdownPreviewContribution extends AbstractViewContribution<MarkdownPreviewWidget>
+ implements FrontendApplicationContribution {
+
+    @inject(EditorManager)
+    protected readonly editorManager!: EditorManager;
+
+    constructor() {
+        super({
+            widgetId: MarkdownPreviewWidget.ID,
+            widgetName: MarkdownPreviewWidget.LABEL,
+            defaultWidgetOptions: {
+                area: 'main',
+                mode: 'split-right',
+            },
+            toggleCommandId: MarkdownPreviewWidgetCommand.id
+        });
+    }
+
+    onStart(): void {
+        this.editorManager.onCreated(editor => this.openForMarkdownEditor(editor));
+        this.editorManager.onCurrentEditorChanged(editor => {
+            if (editor) {
+                this.openForMarkdownEditor(editor);
+            }
+        });
+        const markdownEditor = this.editorManager.all.find(editor => this.isMarkdownEditor(editor));
+        if (markdownEditor) {
+            this.openForMarkdownEditor(markdownEditor);
+        }
+    }
+
+    protected openForMarkdownEditor(editor: EditorWidget): void {
+        if (this.isMarkdownEditor(editor)) {
+            void this.openView({ activate: false, reveal: true });
+        }
+    }
+
+    protected isMarkdownEditor(editor: EditorWidget): boolean {
+        return editor.editor.uri.path.toString().toLowerCase().endsWith('.md');
+    }
+
+    override registerCommands(commands: CommandRegistry): void {
+        super.registerCommands(commands);
+    }
+
+    override registerMenus(menus: MenuModelRegistry): void {
         super.registerMenus(menus);
     }
 }
