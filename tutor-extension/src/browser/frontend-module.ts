@@ -27,6 +27,7 @@ import { TerminalFilterContribution } from './terminal-filter-contribution';
 import { bindTutorTests } from './tutor-test-contribution';
 import { TutorTestRunnerService, tutorTestRunnerServicePath } from '../common/tutor-test-runner-service';
 import { TutorPerspectiveContribution } from './tutor-perspective-contribution';
+import { TutorChatStore } from '../common/tutor-chat-store';
 
 export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     bindViewContribution(bind, ProgressWidgetContribution);
@@ -70,4 +71,5 @@ export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     bindContribution(bind, TerminalFilterContribution, [FilterContribution]);
     bind(TutorPerspectiveContribution).toSelf().inSingletonScope();
     bind(PerspectiveContribution).toService(TutorPerspectiveContribution);
+    bind(TutorChatStore).toSelf().inSingletonScope();
 });

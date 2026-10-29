@@ -20,6 +20,7 @@ import {
 import { TutorChatAgentId } from '../common/tutor-chat-agent';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { FileChangeType } from '@theia/filesystem/lib/common/files';
+import { TutorChatStore } from '../common/tutor-chat-store';
 
 const phases: {[key: string]: string} = {
     '1': TUTOR_PHASE_1_PROMPT_ID,
@@ -47,6 +48,9 @@ export class ProgressWidget extends ReactWidget {
 
     @inject(FileService)
     protected readonly fileService!: FileService;
+
+    @inject(TutorChatStore)
+    protected readonly chatStore!: TutorChatStore;
 
     private currentSession?: ChatSession;
 
@@ -90,6 +94,7 @@ export class ProgressWidget extends ReactWidget {
             const contents = requests[requests.length-1].response.response.content;
             const response = contents[contents.length-1].asString?.();
             if (response?.includes('[FINISHED]')) {
+                await this.chatStore.save(this.currentSession);
                 const req = await this.chatService.sendRequest(this.currentSession.id, {
                     text: `Create #currentRelativeDirPath/Summary-${phase}.md`,
                     displayText: `Ended Phase ${phase}`,
