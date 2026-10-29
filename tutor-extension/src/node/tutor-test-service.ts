@@ -4,7 +4,7 @@ import { join } from 'path';
 import {
     TutorTestExecutionResult,
     TutorTestRunnerService
-} from '../common/tutor-test-runner-service';
+} from '../common/protocol';
 import { TutorTestCase } from '../common/tutor-test-case-schema';
 
 export const TutorTestCaseExecutor = Symbol('TutorTestCaseExecutor');

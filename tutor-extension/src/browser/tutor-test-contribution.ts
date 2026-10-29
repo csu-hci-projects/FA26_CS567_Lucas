@@ -2,7 +2,7 @@ import { CommandContribution, CommandRegistry, ILogger, URI } from '@theia/core'
 import { inject, injectable, interfaces, named, postConstruct } from '@theia/core/shared/inversify';
 import { TestContribution, TestExecutionState, TestItem, TestRunProfileKind, TestService } from '@theia/test/lib/browser/test-service';
 import { TutorTestCase } from '../common/tutor-test-case-schema';
-import { TutorTestRunnerService } from '../common/tutor-test-runner-service';
+import { TutorTestRunnerService } from '../common/protocol';
 import { TestControllerImpl, TestItemImpl, TestRunImpl } from './test-controller';
 import { TutorTestCaseLoadResult, TutorTestCaseStore } from '../common/tutor-test-case-store';
 import { ChatService } from '@theia/ai-chat';

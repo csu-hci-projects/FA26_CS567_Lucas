@@ -8,7 +8,7 @@ import {
 } from '@theia/test/lib/browser/test-service';
 import { AccumulatingTreeDeltaEmitter, CollectionDelta, TreeDelta, TreeDeltaBuilder } from '@theia/test/lib/common/tree-delta';
 import { TutorTestCase } from '../common/tutor-test-case-schema';
-import { TutorTestRunnerService } from '../common/tutor-test-runner-service';
+import { TutorTestRunnerService } from '../common/protocol';
 
 export class TestItemCollection extends TreeCollection<string, TestItemImpl, TestItemImpl | TestControllerImpl> {
     override add(item: TestItemImpl): TestItemImpl | undefined {
