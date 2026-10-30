@@ -16,3 +16,10 @@ export interface TutorTestExecutionResult {
 export interface TutorTestRunnerService {
     runTestCase(testCase: TutorTestCase, root: string): Promise<TutorTestExecutionResult>;
 }
+
+export const ExperimentBackendService = Symbol('ExperimentBackendService');
+export const EXPERIMENT_BACKEND_PATH = '/services/experimentBackend';
+
+export interface ExperimentBackendService {
+    startExperiment(name: string): Promise<string>
+}

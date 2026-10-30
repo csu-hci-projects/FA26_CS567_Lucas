@@ -20,6 +20,7 @@ import {
     PerspectiveContribution
 } from '@theia/core/lib/browser';
 import {
+    CommandContribution,
     FilterContribution,
     bindContribution
 } from '@theia/core/lib/common';
@@ -28,9 +29,15 @@ import '../../src/browser/style/index.css';
 import { DisableAgentContribution } from './disable-agent-contribution';
 import { TerminalFilterContribution } from './terminal-filter-contribution';
 import { bindTutorTests } from './tutor-test-contribution';
-import { TutorTestRunnerService, tutorTestRunnerServicePath } from '../common/tutor-test-runner-service';
+import {
+    ExperimentBackendService,
+    EXPERIMENT_BACKEND_PATH,
+    TutorTestRunnerService,
+    tutorTestRunnerServicePath
+} from '../common/protocol';
 import { TutorPerspectiveContribution } from './tutor-perspective-contribution';
 import { TutorChatStore } from '../common/tutor-chat-store';
+import { ExperimentCommandContribution } from './experiment-contribution';
 
 export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     bindViewContribution(bind, ProgressWidgetContribution);
@@ -77,4 +84,13 @@ export default new ContainerModule((bind, _unbind, _isBound, rebind) => {
     bind(TutorPerspectiveContribution).toSelf().inSingletonScope();
     bind(PerspectiveContribution).toService(TutorPerspectiveContribution);
     bind(TutorChatStore).toSelf().inSingletonScope();
+
+    bind(CommandContribution).to(ExperimentCommandContribution).inSingletonScope();
+    // bind(ServiceConnectionProvider).toSelf().inSingletonScope();
+
+    bind(ExperimentBackendService).toDynamicValue(ctx => {
+        const connection = ctx.container.get<ServiceConnectionProvider>(RemoteConnectionProvider);
+        return connection.createProxy(EXPERIMENT_BACKEND_PATH);
+    }).inSingletonScope();
+
 });
