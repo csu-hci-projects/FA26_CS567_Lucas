@@ -64,7 +64,7 @@ export class ProgressWidget extends ReactWidget {
                 if (resource.path.name.includes("Solution") && phase === '3' &&
                     type === FileChangeType.UPDATED && this.currentSession && !request) {
                         request = this.chatService.sendRequest(this.currentSession.id, {
-                            text: "Check #currentRelativeDirPath/Solution.java for my code changes"
+                            text: "Check #workspaceFolder/Solution.java for my code changes"
                         });
                         request.then(req => req?.responseCompleted).then(_ => request = null);
                         break;
@@ -89,14 +89,14 @@ export class ProgressWidget extends ReactWidget {
         const steps = Number(mode) - Number(phase);
         // if (!agent || steps > 1) throw new Error("Cannot move to that phase");
 
-        if (this.currentSession && steps > 0) {
+        if (this.currentSession && steps >= 0) {
             const requests = this.currentSession.model.getRequests();
             const contents = requests[requests.length-1].response.response.content;
             const response = contents[contents.length-1].asString?.();
             if (response?.includes('[FINISHED]')) {
                 await this.chatStore.save(this.currentSession);
                 const req = await this.chatService.sendRequest(this.currentSession.id, {
-                    text: `Create #currentRelativeDirPath/Summary-${phase}.md`,
+                    text: `Create #workspaceFolder/Summary-${phase}.md`,
                     displayText: `Ended Phase ${phase}`,
                     modeId: tutorSystemVariants.defaultVariant.id
                 });
@@ -169,7 +169,7 @@ function ProgressBar({update}: {update: (mode: string)=>Promise<void>}): React.R
             <ProgressStage number='3' label="Implement Code" active={percent > 99}
                 click={() => update('3').then(() => {
                     setPercent(100);
-                    setStatus("Move onto the next phase when ready");
+                    setStatus("Click Phase 3 again when done to end the session");
                 }).catch(setStatus)} />
         </div>
         <p className={'status ' + (status.toString().startsWith("Error") && 'fail')}>{status.toString()}</p>

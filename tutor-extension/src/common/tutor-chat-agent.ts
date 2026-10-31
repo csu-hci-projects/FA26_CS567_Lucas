@@ -35,15 +35,15 @@ export class TutorChatAgent extends AbstractModeAwareChatAgent {
         name: nls.localize('theia-tutor/agent/mode/1', 'Phase 1')
     }, {
         id: TUTOR_PHASE_2_PROMPT_ID,
-        name: nls.localize('theia-tutor/agent/mode/1', 'Phase 2')
+        name: nls.localize('theia-tutor/agent/mode/2', 'Phase 2')
     }, {
         id: TUTOR_PHASE_3_PROMPT_ID,
-        name: nls.localize('theia-tutor/agent/mode/1', 'Phase 3')
+        name: nls.localize('theia-tutor/agent/mode/3', 'Phase 3')
     }]
 
     override prompts = [tutorSystemVariants];
     protected override systemPromptId: string = tutorSystemVariants.id;
     // override iconClass: string = 'codicon codicon-comment';
     override functions = ['getTutorTests', 'getFileContent', 'writeFileContent'];
-    override variables = ['currentFileContent', 'lineNumber', 'currentRelativeDirPath'];
+    override variables = ['currentFileContent', 'lineNumber', 'workspaceFolder'];
 }
