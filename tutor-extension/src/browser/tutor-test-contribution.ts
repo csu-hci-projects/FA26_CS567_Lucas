@@ -1,6 +1,13 @@
 import { CommandContribution, CommandRegistry, ILogger, URI } from '@theia/core';
 import { inject, injectable, interfaces, named, postConstruct } from '@theia/core/shared/inversify';
-import { TestContribution, TestExecutionState, TestItem, TestRunProfileKind, TestService } from '@theia/test/lib/browser/test-service';
+import {
+    TestContribution,
+    TestExecutionState,
+    TestItem,
+    TestRunProfileKind,
+    TestService,
+    TestState
+} from '@theia/test/lib/browser/test-service';
 import { TutorTestCase } from '../common/tutor-test-case-schema';
 import { TutorTestRunnerService } from '../common/protocol';
 import { TestControllerImpl, TestItemImpl, TestRunImpl } from './test-controller';
@@ -68,24 +75,28 @@ export class TutorTestContribution implements TestContribution, CommandContribut
                     this.testController,
                     `tutor-run-id-${runId}`,
                     name || `tutor-run-${runId}`,
-                    this.workspaceService.tryGetRoots()[0].resource.path.fsPath(),
+                    this.workspaceService.tryGetRoots()[0].resource.parent.path.fsPath(),
                     runItems,
                     this.testRunnerService
                 );
+                const tests = new Map<TestItem, TestState | undefined>();
+
                 this.testController.addRun(testRun);
-                let completed = 0, passed = 0;
-                testRun.onDidChangeTestOutput(result => {
-                    const [item] = result[0];
+                TutorTestFunction.lastRun = testRun;
+                testRun.onDidChangeTestState(result => {
+                    const {test, newState} = result[0];
                     const session = this.chatService.getActiveSession();
                     const phase = this.promptService.getSelectedVariantId(tutorSystemVariants.id);
-                    TutorTestFunction.lastRun = testRun;
-                    if (item && testRun.getTestState(item)?.state === TestExecutionState.Passed)
-                        passed++;
-                    if (++completed === runItems.length && session && phase?.endsWith('3')) {
+
+                    if (test) tests.set(test, newState);
+                    const states: number[] = Array.from(tests.values()).map(t => t?.state ?? 0);
+                    const completed = states.filter(s => s >= TestExecutionState.Passed);
+                    
+                    if (completed.length === runItems.length && session && phase?.endsWith('3')) {
                         this.chatService.sendRequest(session.id, {
                             text: "Check the most recent test case results"
                         })
-                        this.logger.info(`${testRun.root} Tests passed: ${passed}/${completed}`);
+                        this.logger.info(`Participant ${testRun.root.split('/').pop()} test results: ${states.map(s => TestExecutionState[s])}`);
                     }
                 });
             },

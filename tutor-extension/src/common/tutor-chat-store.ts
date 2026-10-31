@@ -56,7 +56,7 @@ export class TutorChatStore {
             return undefined;
         }
 
-        return roots[0].resource.resolve('.theia');
+        return roots[0].resource.parent.resolve('.theia');
     }
 
 }

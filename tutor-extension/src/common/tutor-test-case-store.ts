@@ -98,8 +98,8 @@ export class TutorTestCaseStore {
         if (roots.length === 0) {
             return undefined;
         }
-
-        return roots[0].resource.resolve(TUTOR_TEST_CASES_FILE_PATH);
+        
+        return roots[0].resource.parent.resolve(TUTOR_TEST_CASES_FILE_PATH);
     }
 
     protected async assertFileIsSafeToOverwrite(fileUri: URI): Promise<void> {

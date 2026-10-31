@@ -8,6 +8,7 @@ import { ChatViewWidget } from "@theia/ai-chat-ui/lib/browser/chat-view-widget";
 import { TestTreeWidget } from "@theia/test/lib/browser/view/test-tree-widget";
 import { ProgressWidget } from "./progress-widget";
 import { TestWidget } from "./test-widget";
+import { TestResultWidget } from "@theia/test/lib/browser/view/test-result-widget";
 
 @injectable()
 export class TutorPerspectiveContribution implements PerspectiveContribution {
@@ -23,11 +24,13 @@ export class TutorPerspectiveContribution implements PerspectiveContribution {
                 [TestWidget.ID, 'left'],
                 [EXPLORER_VIEW_CONTAINER_ID, 'left'],
                 [ProgressWidget.ID, 'bottom'],
+                [TestResultWidget.ID, 'bottom'],
                 [ChatViewWidget.ID, 'right'],
                 [AISessionsWidget.ID, 'right']
             ]),
             primaryViews: {
                 left: TestTreeWidget.ID,
+                bottom: ProgressWidget.ID,
                 right: ChatViewWidget.ID
             },
             onActivate: _shell => {
@@ -40,10 +43,11 @@ export class TutorPerspectiveContribution implements PerspectiveContribution {
             viewPlacements: new Map<string, ApplicationShell.Area>([
                 [TestTreeWidget.ID, 'left'],
                 [TestWidget.ID, 'left'],
-                [EXPLORER_VIEW_CONTAINER_ID, 'left']
+                [EXPLORER_VIEW_CONTAINER_ID, 'left'],
+                [TestResultWidget.ID, 'bottom'],
             ]),
             chromeOptions: {
-                collapseAreas: ['right', 'bottom']
+                collapseAreas: ['right']
             }
         });
     }

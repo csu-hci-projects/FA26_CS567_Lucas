@@ -138,7 +138,7 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
             return {
                 state: 'errored',
                 output: diagnostics,
-                message: 'Failed to compile or execute Solution.java.'
+                message: 'Failed to compile or execute ```' + executionError.stderr + '```'
             };
         }
 
@@ -146,19 +146,21 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
             ? actualOutput === testCase.expectedOutput
             : actualOutput.includes(testCase.expectedOutput);
 
-        const output = `${testCase.title}
-Input: ${testCase.input}
-Expected (${testCase.matchMode}): ${testCase.expectedOutput}
-Actual: ${actualOutput}
-        `;
+        const output = [
+            `**${testCase.title}**`,
+            `Input: \`${testCase.input}\``,
+            `Expected (${testCase.matchMode}): \`${testCase.expectedOutput}\``,
+            `Actual: \`${actualOutput}\``
+        ];
 
         const result: TutorTestExecutionResult = {
             state: passed ? 'passed' : 'failed',
-            output: [output],
+            output,
+            message: output.join('\n\n'),
             actualOutput,
             expectedOutput: testCase.expectedOutput
         };
-        if (!passed) result.message = 'Output did not match expectation.';
+        if (!passed) result.message += '\n\n_Output did not match expectation._';
         return result;
     }
 }

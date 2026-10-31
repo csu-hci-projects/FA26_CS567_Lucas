@@ -189,18 +189,20 @@ export class TestRunImpl implements TestRun {
                 return;
             }
 
-            result.output.forEach(line => this.appendOutput(line, undefined, item));
             if (result.state === 'passed') {
                 this.setTestState(item, { state: TestExecutionState.Passed });
+                result.output.slice(0, -1).forEach(line => this.appendOutput(line, undefined, item));
                 return;
             }
 
             if (result.state === 'failed') {
                 this.setTestState(item, this.toFailureState(item, result.message ?? 'Test failed.'));
+                result.output.forEach(line => this.appendOutput(line, undefined, item));
                 return;
             }
 
             this.setTestState(item, this.toErrorState(item, result.message ?? 'Test runner error.'));
+            this.appendOutput(result.output[0], undefined, item)
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             this.setTestState(item, this.toErrorState(item, message));
