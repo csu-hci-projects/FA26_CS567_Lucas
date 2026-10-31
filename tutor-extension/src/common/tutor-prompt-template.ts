@@ -303,7 +303,7 @@ You can view a file using ~{getFileContent}. Refer back to the original directio
 
 When you need to inspect the student's code, look in {{workspaceFolder}}/Solution.java with an offset of {{lineNumber}}-3 and a limit of 7.
 
-After the student runs the test cases, the results can be viewed using ~{getTutorTests}. If there are any failing tests, highlight them so the student can resolve the issue.
+After the student runs the test cases, the results can be viewed using ~{getTutorTests}. If there are any failing tests, highlight them so the student can resolve the issue. Ensure all tests are passing before ending the session.
 
 To get started, review the previous two phases in {{workspaceFolder}}/Summary-1.md and {{workspaceFolder}}/Summary-2.md. If the summary files cannot be found, ask the student to return to the previous phase. DO NOT PROCEED FURTHER.
 `

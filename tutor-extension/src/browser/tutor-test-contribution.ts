@@ -16,6 +16,7 @@ import { ChatService } from '@theia/ai-chat';
 import { PromptService, ToolProvider, ToolRequest } from '@theia/ai-core';
 import { tutorSystemVariants } from '../common/tutor-prompt-template';
 import { WorkspaceService } from '@theia/workspace/lib/browser';
+import { TutorChatStore } from '../common/tutor-chat-store';
 
 export namespace TutorTestCommands {
     export const reloadTestCases = {
@@ -37,13 +38,16 @@ export class TutorTestContribution implements TestContribution, CommandContribut
     protected readonly logger!: ILogger;
 
     @inject(ChatService)
-    protected readonly chatService!: ChatService
+    protected readonly chatService!: ChatService;
 
     @inject(PromptService)
-    protected readonly promptService!: PromptService
+    protected readonly promptService!: PromptService;
 
     @inject(WorkspaceService)
-    protected readonly workspaceService!: WorkspaceService
+    protected readonly workspaceService!: WorkspaceService;
+
+    @inject(TutorChatStore)
+    protected readonly chatStore!: TutorChatStore;
 
     protected readonly testController = new TestControllerImpl('TutorTestController', 'Tutor Test Controller');
     protected nextRunId = 0;
@@ -96,7 +100,15 @@ export class TutorTestContribution implements TestContribution, CommandContribut
                         this.chatService.sendRequest(session.id, {
                             text: "Check the most recent test case results"
                         })
-                        this.logger.info(`Participant ${testRun.root.split('/').pop()} test results: ${states.map(s => TestExecutionState[s])}`);
+                        .then(request => request?.responseCompleted)
+                        .then(response => {
+                            if (response?.response.asString().includes('[FINISHED]') && states.every(s => s == TestExecutionState.Passed)) {
+                                return this.chatStore.save(session);
+                            }
+                            throw new Error();
+                        })
+                        .then(_uri => this.workspaceService.close())
+                        .catch(_ => this.logger.info(`Participant ${testRun.root.split('/').pop()} test results: ${states.map(s => TestExecutionState[s])}`));
                     }
                 });
             },

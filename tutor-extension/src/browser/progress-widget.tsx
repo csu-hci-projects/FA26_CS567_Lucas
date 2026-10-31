@@ -2,7 +2,7 @@ import * as React from '@theia/core/shared/react';
 import { injectable, postConstruct, inject } from '@theia/core/shared/inversify';
 import { ReactWidget } from '@theia/core/lib/browser/widgets/react-widget';
 import { MessageService } from '@theia/core';
-import { Message } from '@theia/core/lib/browser';
+import { ApplicationShell, Message } from '@theia/core/lib/browser';
 import { PromptService } from '@theia/ai-core';
 import {
     ChatService,
@@ -21,6 +21,7 @@ import { TutorChatAgentId } from '../common/tutor-chat-agent';
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { FileChangeType } from '@theia/filesystem/lib/common/files';
 import { TutorChatStore } from '../common/tutor-chat-store';
+import { TestResultWidget } from "@theia/test/lib/browser/view/test-result-widget";
 
 const phases: {[key: string]: string} = {
     '1': TUTOR_PHASE_1_PROMPT_ID,
@@ -33,6 +34,9 @@ export class ProgressWidget extends ReactWidget {
 
     static readonly ID = 'progress:widget';
     static readonly LABEL = 'Progress Widget';
+
+    @inject(ApplicationShell)
+    protected readonly shell!: ApplicationShell;
 
     @inject(MessageService)
     protected readonly messageService!: MessageService;
@@ -89,7 +93,7 @@ export class ProgressWidget extends ReactWidget {
         const steps = Number(mode) - Number(phase);
         // if (!agent || steps > 1) throw new Error("Cannot move to that phase");
 
-        if (this.currentSession && steps >= 0) {
+        if (this.currentSession && steps > 0) {
             const requests = this.currentSession.model.getRequests();
             const contents = requests[requests.length-1].response.response.content;
             const response = contents[contents.length-1].asString?.();
@@ -102,6 +106,11 @@ export class ProgressWidget extends ReactWidget {
                 });
                 await req?.responseCompleted;
             } else throw new Error("Not ready to move on yet");
+        }
+
+        if (mode === '3') {
+            await this.shell.activateWidget(TestResultWidget.ID);
+            await this.messageService.info("View test results by selecting a test case");
         }
 
         this.currentSession = this.chatService.createSession(
@@ -159,17 +168,17 @@ function ProgressBar({update}: {update: (mode: string)=>Promise<void>}): React.R
             <ProgressStage number='1' label="Conceptual Logic" active={percent > 0}
                 click={() => update('1').then(() => {
                     setPercent(1);
-                    setStatus("Move onto the next phase when ready");
+                    setStatus("Move onto the next phase when you've answered the tutor's questions");
                 }).catch(setStatus)} />
             <ProgressStage number='2' label="Algorithm Design" active={percent > 49}
                 click={() => update('2').then(() => {
                     setPercent(50);
-                    setStatus("Move onto the next phase when ready");
+                    setStatus("Move onto the next phase when your plan has been approved by the tutor");
                 }).catch(setStatus)} />
             <ProgressStage number='3' label="Implement Code" active={percent > 99}
                 click={() => update('3').then(() => {
                     setPercent(100);
-                    setStatus("Click Phase 3 again when done to end the session");
+                    setStatus("End the session when the tutor confirms all tests are passing");
                 }).catch(setStatus)} />
         </div>
         <p className={'status ' + (status.toString().startsWith("Error") && 'fail')}>{status.toString()}</p>
