@@ -10,7 +10,8 @@ import { TutorTestCase } from '../common/tutor-test-case-schema';
 export const TutorTestCaseExecutor = Symbol('TutorTestCaseExecutor');
 
 export interface TutorTestCaseExecutor {
-    execute(testCase: TutorTestCase, workspacePath: string): Promise<TutorTestExecutionResult>;
+    execute(testCase: TutorTestCase,
+        workspacePath: string): Promise<TutorTestExecutionResult>;
 }
 
 interface ProcessResult {
@@ -115,6 +116,7 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
             };
         }
         let actualOutput: string;
+        let errorOutput: string | undefined;
         try {
             const result = await runProcess(
                 join(process.env.JAVA_HOME!, '/bin/java'),
@@ -129,17 +131,8 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
                 stdout?: string;
                 stderr?: string;
             };
-            const diagnostics = [
-                executionError.stderr,
-                executionError.stdout,
-                executionError.message
-            ].filter((value): value is string => Boolean(value?.trim()));
-
-            return {
-                state: 'errored',
-                output: diagnostics,
-                message: 'Failed to compile or execute ```' + executionError.stderr + '```'
-            };
+            actualOutput = executionError.stdout?.trimEnd() ?? '';
+            errorOutput = executionError.stderr;
         }
 
         const passed = testCase.matchMode === 'equals'
@@ -150,7 +143,7 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
             `**${testCase.title}**`,
             `Input: \`${testCase.input}\``,
             `Expected (${testCase.matchMode}): \`${testCase.expectedOutput}\``,
-            `Actual: \`${actualOutput}\``
+            `Actual: \`${errorOutput || actualOutput}\``
         ];
 
         const result: TutorTestExecutionResult = {
@@ -160,7 +153,15 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
             actualOutput,
             expectedOutput: testCase.expectedOutput
         };
+
+        result.output[0] += ` (${result.state})`;
+        if (errorOutput !== undefined) {
+            result.message += '\n\n_Failed to compile or execute code._';
+            result.output.unshift(errorOutput);
+            result.state = 'errored';
+        } else
         if (!passed) result.message += '\n\n_Output did not match expectation._';
+
         return result;
     }
 }
@@ -170,7 +171,8 @@ export class TutorTestRunnerServiceImpl implements TutorTestRunnerService {
     @inject(TutorTestCaseExecutor)
     protected readonly executor!: TutorTestCaseExecutor;
 
-    async runTestCase(testCase: TutorTestCase, root: string): Promise<TutorTestExecutionResult> {
+    async runTestCase(testCase: TutorTestCase,
+        root: string): Promise<TutorTestExecutionResult> {
         return this.executor.execute(testCase, root);
     }
 }

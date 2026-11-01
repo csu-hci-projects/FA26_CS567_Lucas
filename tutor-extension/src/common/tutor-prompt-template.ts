@@ -299,9 +299,7 @@ Always maintain the Socratic tutoring process. Never prioritize speed over learn
 
 Your task is to work with the student on completing PHASE THREE ONLY. When done, send a message containing [FINISHED] to indicate the conversation is over.
 
-You can view a file using ~{getFileContent}. Refer back to the original directions in {{workspaceFolder}}/Problem.md as needed.
-
-When you need to inspect the student's code, look in {{workspaceFolder}}/Solution.java with an offset of {{lineNumber}}-3 and a limit of 7.
+You can view a file using ~{getFileContent}. Refer back to the original directions in {{workspaceFolder}}/Problem.md as needed. When you need to inspect the student's code, look in {{workspaceFolder}}/Solution.java.
 
 After the student runs the test cases, the results can be viewed using ~{getTutorTests}. If there are any failing tests, highlight them so the student can resolve the issue. Ensure all tests are passing before ending the session.
 

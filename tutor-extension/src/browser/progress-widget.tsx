@@ -126,7 +126,7 @@ export class ProgressWidget extends ReactWidget {
         )
 
         await this.chatService.sendRequest(this.currentSession.id, {
-            text: `Let's start on Phase ${mode}.`
+            text: `Let's start on Phase ${mode} for #workspaceFolder.`
         })
     }
 
@@ -178,7 +178,7 @@ function ProgressBar({update}: {update: (mode: string)=>Promise<void>}): React.R
             <ProgressStage number='3' label="Implement Code" active={percent > 99}
                 click={() => update('3').then(() => {
                     setPercent(100);
-                    setStatus("End the session when the tutor confirms all tests are passing");
+                    setStatus("The session will end when the tutor confirms all tests are passing");
                 }).catch(setStatus)} />
         </div>
         <p className={'status ' + (status.toString().startsWith("Error") && 'fail')}>{status.toString()}</p>

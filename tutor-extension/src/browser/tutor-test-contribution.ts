@@ -102,7 +102,9 @@ export class TutorTestContribution implements TestContribution, CommandContribut
                         })
                         .then(request => request?.responseCompleted)
                         .then(response => {
-                            if (response?.response.asString().includes('[FINISHED]') && states.every(s => s == TestExecutionState.Passed)) {
+                            if (response?.response.asString().includes('[FINISHED]')
+                                || states.every(s => s == TestExecutionState.Passed)) {
+                                this.logger.info(`Participant ${testRun.root.split('/').pop()} ending session.`);
                                 return this.chatStore.save(session);
                             }
                             throw new Error();
