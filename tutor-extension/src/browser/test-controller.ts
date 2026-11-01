@@ -3,7 +3,7 @@ import { Location, Range } from '@theia/core/shared/vscode-languageserver-protoc
 import { MarkdownString } from '@theia/core/lib/common/markdown-rendering';
 import { SimpleObservableCollection, TreeCollection, observableProperty } from '@theia/test/lib/common/collections';
 import {
-    TestController, TestExecutionState, TestFailure, TestItem,
+    TestController, TestExecutionState, TestMessage, TestItem,
     TestOutputItem, TestRun, TestRunProfile, TestState, TestStateChangedEvent
 } from '@theia/test/lib/browser/test-service';
 import { AccumulatingTreeDeltaEmitter, CollectionDelta, TreeDelta, TreeDeltaBuilder } from '@theia/test/lib/common/tree-delta';
@@ -174,7 +174,8 @@ export class TestRunImpl implements TestRun {
 
     private async runOne(item: TestItemImpl, token: CancellationToken): Promise<void> {
         if (!item.testCase) {
-            this.setTestState(item, this.toErrorState(item, 'Test case data is missing.'));
+            this.setTestState(item, this.toFinishedState(item, 'Test case data is missing.',
+                TestExecutionState.Errored));
             return;
         }
 
@@ -190,47 +191,32 @@ export class TestRunImpl implements TestRun {
             }
 
             if (result.state === 'passed') {
-                this.setTestState(item, { state: TestExecutionState.Passed });
+                this.setTestState(item, this.toFinishedState(item, result.message ?? 'Test passed',
+                    TestExecutionState.Passed));
                 result.output.slice(0, -1).forEach(line => this.appendOutput(line, undefined, item));
                 return;
             }
 
             if (result.state === 'failed') {
-                this.setTestState(item, this.toFailureState(item, result.message ?? 'Test failed.'));
+                this.setTestState(item, this.toFinishedState(item, result.message ?? 'Test failed.',
+                    TestExecutionState.Failed));
                 result.output.forEach(line => this.appendOutput(line, undefined, item));
                 return;
             }
 
-            this.setTestState(item, this.toErrorState(item, result.message ?? 'Test runner error.'));
+            this.setTestState(item, this.toFinishedState(item, result.message ?? 'Test runner error.',
+                TestExecutionState.Errored));
             this.appendOutput(result.output[0], undefined, item)
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            this.setTestState(item, this.toErrorState(item, message));
+            this.setTestState(item, this.toFinishedState(item, message, TestExecutionState.Errored));
         }
     }
 
-    private toFailureState(item: TestItemImpl, message: string): TestFailure {
+    private toFinishedState(item: TestItemImpl, message: string,
+        state: TestExecutionState): TestState & Record<"messages", TestMessage[]> {
         return {
-            state: TestExecutionState.Failed,
-            duration: 0,
-            messages: [
-                {
-                    message: {
-                        value: message
-                    },
-                    location: item.range ? {
-                        uri: item.uri.toString(),
-                        range: item.range
-                    } : undefined
-                }
-            ]
-        };
-    }
-
-    private toErrorState(item: TestItemImpl, message: string): TestFailure {
-        return {
-            state: TestExecutionState.Errored,
-            duration: 0,
+            state,
             messages: [
                 {
                     message: {
