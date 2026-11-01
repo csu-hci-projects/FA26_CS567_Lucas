@@ -36,19 +36,17 @@ export class ExperimentBackendServiceImpl implements ExperimentBackendService {
             await fs.cp(this.problemRoot, dest, {
                 recursive: true
             });
-        }       
-        await fs.appendFile(
-            join(folders[0].path, 'Problem.md'),
+            await fs.appendFile(join(folders[0].path, 'Problem.md'),
             '\n\nYou are to do this problem in **' +
             (id % 2 ? 'Tutor' : 'No Tutor') + '** mode.' +
             '\n\nUse `F1>View: Switch Perspective` to change modes.'
-        );
-        await fs.appendFile(
-            join(folders[1].path, 'Problem.md'),
+            );
+            await fs.appendFile(join(folders[1].path, 'Problem.md'),
             '\n\nYou are to do this problem in **' +
             (id % 2 ? 'No Tutor' : 'Tutor') + '** mode.' +
             '\n\nUse `F1>View: Switch Perspective` to change modes.'
-        );
+            );
+        }
         return experimentWorkspace;
     }
 }
