@@ -68,7 +68,8 @@ export class ProgressWidget extends ReactWidget {
                 if (resource.path.name.includes("Solution") && phase === '3' &&
                     type === FileChangeType.UPDATED && this.currentSession && !request) {
                         request = this.chatService.sendRequest(this.currentSession.id, {
-                            text: "Check #workspaceFolder/Solution.java for my code changes"
+                            text: "Check #workspaceFolder/Solution.java for my code changes around line #lineNumber",
+                            displayText: "Checking code changes"
                         });
                         request.then(req => req?.responseCompleted).then(_ => request = null);
                         break;
@@ -105,12 +106,17 @@ export class ProgressWidget extends ReactWidget {
                     modeId: tutorSystemVariants.defaultVariant.id
                 });
                 await req?.responseCompleted;
+                this.currentSession = void await this.chatService.deleteSession(this.currentSession.id);
             } else throw new Error("Not ready to move on yet");
         }
 
         if (mode === '3') {
             await this.shell.activateWidget(TestResultWidget.ID);
-            await this.messageService.info("View test results by selecting a test case");
+            await this.messageService.info(
+            'Run tests by expanding the Task under the Tutor Test Controller.\n'+
+            'View the test results by selecting a test case under Test Runs.\n'+
+            'The session will automatically end when all tests are passing.',
+            'Start coding');
         }
 
         this.currentSession = this.chatService.createSession(
@@ -126,7 +132,8 @@ export class ProgressWidget extends ReactWidget {
         )
 
         await this.chatService.sendRequest(this.currentSession.id, {
-            text: `Let's start on Phase ${mode} for #workspaceFolder.`
+            text: `Let's start on Phase ${mode} for #workspaceFolder`,
+            displayText: `Starting Phase ${mode}`
         })
     }
 

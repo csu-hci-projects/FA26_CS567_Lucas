@@ -119,8 +119,8 @@ export class JavaTutorTestCaseExecutor implements TutorTestCaseExecutor {
         let errorOutput: string | undefined;
         try {
             const result = await runProcess(
-                join(process.env.JAVA_HOME!, '/bin/java'),
-                ['Solution.java', testCase.input],
+                join(process.env.JAVA_HOME!, 'bin', 'java'),
+                ['Solution.java', ...testCase.input.split(/\s+/)],
                 join(workspacePath, testCase.title
                     .substring(0, 6).replace(' ', '-'))
             );

@@ -21,7 +21,7 @@ export class TutorChatAgent extends AbstractModeAwareChatAgent {
     name = TutorChatAgentId;
     languageModelRequirements: LanguageModelRequirement[] = [{
         purpose: 'chat',
-        identifier: 'ollama/gpt-oss:20b',
+        identifier: 'CSUGPT',
     }];
     protected defaultLanguageModelPurpose: string = 'chat';
     override description = nls.localize('theia-tutor/agent/description',
@@ -46,4 +46,12 @@ export class TutorChatAgent extends AbstractModeAwareChatAgent {
     // override iconClass: string = 'codicon codicon-comment';
     override functions = ['getTutorTests', 'getFileContent', 'writeFileContent'];
     override variables = ['currentFileContent', 'lineNumber', 'workspaceFolder'];
+
+    protected override getLlmSettings(): { [key: string]: unknown; } | undefined {
+        return {
+            temperature: 0.7,
+            reasoning_effort: "none"
+        }
+    }
+
 }

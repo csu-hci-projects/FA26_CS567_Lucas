@@ -105,11 +105,19 @@ export class TutorTestContribution implements TestContribution, CommandContribut
                             if (response?.response.asString().includes('[FINISHED]')
                                 || states.every(s => s == TestExecutionState.Passed)) {
                                 this.logger.info(`Participant ${testRun.root.split('/').pop()} ending session.`);
-                                return this.chatStore.save(session);
+                                return Promise.all([
+                                    this.chatStore.save(session),
+                                    this.chatService.sendRequest(session.id, {
+                                        text: 'Create #workspaceFolder/Summary-3.md',
+                                        displayText: 'Ended Phase 3',
+                                        modeId: tutorSystemVariants.defaultVariant.id
+                                    })
+                                ]);
                             }
                             throw new Error();
                         })
-                        .then(_uri => this.workspaceService.close())
+                        .then(([_uri, req]) => req?.responseCompleted)
+                        .then(_ => this.chatService.deleteSession(session.id))
                         .catch(_ => this.logger.info(`Participant ${testRun.root.split('/').pop()} test results: ${states.map(s => TestExecutionState[s])}`));
                     }
                 });
